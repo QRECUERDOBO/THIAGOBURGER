@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thiago Burgers - Juego del Cronómetro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ff6b35, #ff8e53, #ffa726);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animación de fondo */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            animation: backgroundMove 10s ease-in-out infinite;
+        }
+
+        @keyframes backgroundMove {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .container {
+            text-align: center;
+            z-index: 10;
+            position: relative;
+            padding: 20px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .logo {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #fff;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 3px solid #ff6b35;
+            margin-bottom: 20px;
+        }
+
+        .timer-display {
+            font-size: 4em;
+            font-weight: bold;
+            color: #ff6b35;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .timer-display.warning {
+            color: #ff1744;
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .hamburger-button {
+            width: 180px;
+            height: 180px;
+            border: none;
+            border-radius: 50%;
+            margin: 20px auto;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .hamburger-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .hamburger-button:active {
+            transform: scale(0.95);
+        }
+
+        .hamburger-button.start {
+            background: linear-gradient(145deg, #ff6b35, #ff8e53);
+        }
+
+        .hamburger-button.stop {
+            background: linear-gradient(145deg, #ff1744, #ff5722);
+            animation: buttonPulse 1s infinite;
+        }
+
+        @keyframes buttonPulse {
+            0%, 100% { box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); }
+            50% { box-shadow: 0 10px 25px rgba(255, 23, 68, 0.5); }
+        }
+
+        .burger-layers {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 80px;
+        }
+
+        .bun-top, .bun-bottom {
+            width: 120px;
+            height: 25px;
+            background: linear-gradient(145deg, #deb887, #cd853f);
+            border-radius: 60px 60px 20px 20px;
+            position: absolute;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .bun-top {
+            top: 0;
+        }
+
+        .bun-bottom {
+            bottom: 0;
+            border-radius: 20px 20px 60px 60px;
+        }
+
+        .patty {
+            width: 100px;
+            height: 20px;
+            background: linear-gradient(145deg, #8b4513, #654321);
+            border-radius: 10px;
+            position: absolute;
+            top: 30px;
+            left: 10px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .cheese {
+            width: 90px;
+            height: 15px;
+            background: linear-gradient(145deg, #ffd700, #ffb300);
+            border-radius: 5px;
+            position: absolute;
+            top: 25px;
+            left: 15px;
+        }
+
+        .button-text {
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .rules {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .rules h3 {
+            color: #ff6b35;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .rules p {
+            color: #333;
+            line-height: 1.4;
+            margin-bottom: 5px;
+        }
+
+        .result {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            transition: all 0.5s ease;
+        }
+
+        .result.win {
+            background: linear-gradient(145deg, #4caf50, #8bc34a);
+            color: white;
+            animation: celebrate 1s ease-in-out;
+        }
+
+        .result.lose {
+            background: linear-gradient(145deg, #f44336, #ff5722);
+            color: white;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes celebrate {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.1) rotate(2deg); }
+            75% { transform: scale(1.1) rotate(-2deg); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b35, #ff8e53);
+            border-radius: 4px;
+            transition: width 0.1s ease;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+            color: #fff;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 480px) {
+            .logo { font-size: 2em; }
+            .hamburger-button { width: 160px; height: 160px; }
+            .burger-layers { width: 100px; height: 70px; }
+            .bun-top, .bun-bottom { width: 100px; height: 20px; }
+            .patty { width: 85px; height: 18px; top: 26px; left: 8px; }
+            .cheese { width: 75px; height: 12px; top: 22px; left: 12px; }
+            .timer-display { font-size: 3em; }
+            .game-container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🍔 THIAGO BURGERS 🍔</div>
+        <div class="subtitle">¡Desafío del Cronómetro!</div>
+        
+        <div class="rules">
+            <h3>🎯 REGLAS DEL JUEGO</h3>
+            <p>• Presiona INICIAR para comenzar</p>
+            <p>• Detén el cronómetro EXACTAMENTE en 10.0 segundos</p>
+            <p>• Si paras antes o después, ¡PIERDES!</p>
+            <p>• El cronómetro va hasta 12 segundos máximo</p>
+            <p>• ¡Solo los más precisos ganan!</p>
+        </div>
+
+        <div class="game-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div class="timer-display" id="timerDisplay">0.0</div>
+            
+            <button class="hamburger-button start" id="gameButton">
+                <div class="burger-layers">
+                    <div class="bun-top"></div>
+                    <div class="cheese"></div>
+                    <div class="patty"></div>
+                    <div class="bun-bottom"></div>
+                </div>
+                <div class="button-text" id="buttonText">INICIAR</div>
+            </button>
+            
+            <div class="result" id="result"></div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="attempts">0</div>
+                <div class="stat-label">Intentos</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="wins">0</div>
+                <div class="stat-label">Victorias</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="winRate">0%</div>
+                <div class="stat-label">Precisión</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ThiagoBurgersGame {
+            constructor() {
+                this.gameButton = document.getElementById('gameButton');
+                this.timerDisplay = document.getElementById('timerDisplay');
+                this.buttonText = document.getElementById('buttonText');
+                this.result = document.getElementById('result');
+                this.progressFill = document.getElementById('progressFill');
+                this.attemptsDisplay = document.getElementById('attempts');
+                this.winsDisplay = document.getElementById('wins');
+                this.winRateDisplay = document.getElementById('winRate');
+                
+                this.isRunning = false;
+                this.startTime = 0;
+                this.animationId = null;
+                this.attempts = 0;
+                this.wins = 0;
+                
+                this.init();
+            }
+
+            init() {
+                this.gameButton.addEventListener('click', () => this.handleButtonClick());
+                this.gameButton.addEventListener('touchstart', (e) => e.preventDefault());
+            }
+
+            handleButtonClick() {
+                if (!this.isRunning) {
+                    this.startGame();
+                } else {
+                    this.stopGame();
+                }
+            }
+
+            startGame() {
+                this.isRunning = true;
+                this.startTime = Date.now();
+                this.result.textContent = '';
+                this.result.className = 'result';
+                
+                this.gameButton.className = 'hamburger-button stop';
+                this.buttonText.textContent = 'PARAR';
+                
+                this.timerDisplay.className = 'timer-display';
+                this.updateTimer();
+            }
+
+            updateTimer() {
+                if (!this.isRunning) return;
+                
+                const elapsed = (Date.now() - this.startTime) / 1000;
+                const displayTime = Math.min(elapsed, 12);
+                
+                this.timerDisplay.textContent = displayTime.toFixed(1);
+                
+                // Actualizar barra de progreso
+                const progress = (displayTime / 12) * 100;
+                this.progressFill.style.width = progress + '%';
+                
+                // Cambiar color cuando se acerca a 10 segundos
+                if (displayTime >= 9) {
+                    this.timerDisplay.className = 'timer-display warning';
+                }
+                
+                // Auto-stop a los 12 segundos
+                if (displayTime >= 12) {
+                    this.autoStop();
+                    return;
+                }
+                
+                this.animationId = requestAnimationFrame(() => this.updateTimer());
+            }
+
+            stopGame() {
+                if (!this.isRunning) return;
+                
+                this.isRunning = false;
+                cancelAnimationFrame(this.animationId);
+                
+                const elapsed = (Date.now() - this.startTime) / 1000;
+                const finalTime = Math.min(elapsed, 12);
+                
+                this.attempts++;
+                this.evaluateResult(finalTime);
+                this.resetButton();
+                this.updateStats();
+            }
+
+            autoStop() {
+                this.isRunning = false;
+                cancelAnimationFrame(this.animationId);
+                
+                this.attempts++;
+                this.evaluateResult(12);
+                this.resetButton();
+                this.updateStats();
+            }
+
+            evaluateResult(time) {
+                // Hacer el juego más difícil: solo exactamente 10.0 segundos gana
+                if (time >= 9.95 && time <= 10.05) {
+                    this.wins++;
+                    this.result.textContent = '🎉 ¡GANASTE! 🎉';
+                    this.result.className = 'result win';
+                    
+                    // Efecto de celebración
+                    this.celebrate();
+                } else if (time < 10) {
+                    this.result.textContent = '⚡ ¡MUY RÁPIDO! ⚡';
+                    this.result.className = 'result lose';
+                } else {
+                    this.result.textContent = '🐌 ¡MUY LENTO! 🐌';
+                    this.result.className = 'result lose';
+                }
+            }
+
+            celebrate() {
+                // Efecto visual de celebración
+                const colors = ['#ff6b35', '#ffa726', '#ff8e53', '#ffb74d'];
+                let colorIndex = 0;
+                
+                const celebrateInterval = setInterval(() => {
+                    document.body.style.backgroundColor = colors[colorIndex];
+                    colorIndex = (colorIndex + 1) % colors.length;
+                }, 200);
+                
+                setTimeout(() => {
+                    clearInterval(celebrateInterval);
+                    document.body.style.background = 'linear-gradient(135deg, #ff6b35, #ff8e53, #ffa726)';
+                }, 2000);
+            }
+
+            resetButton() {
+                this.gameButton.className = 'hamburger-button start';
+                this.buttonText.textContent = 'INICIAR';
+                this.timerDisplay.className = 'timer-display';
+                this.progressFill.style.width = '0%';
+            }
+
+            updateStats() {
+                this.attemptsDisplay.textContent = this.attempts;
+                this.winsDisplay.textContent = this.wins;
+                
+                const winRate = this.attempts > 0 ? Math.round((this.wins / this.attempts) * 100) : 0;
+                this.winRateDisplay.textContent = winRate + '%';
+            }
+        }
+
+        // Inicializar el juego cuando se carga la página
+        document.addEventListener('DOMContentLoaded', () => {
+            new ThiagoBurgersGame();
+        });
+
+        // Prevenir zoom en dispositivos móviles
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(e) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
+</body>
+</html>
