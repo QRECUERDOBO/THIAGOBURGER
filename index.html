@@ -255,7 +255,8 @@ function showResult(v) {
       } else {
         clearInterval(interval); started=false;
         btn.classList.replace('stop','start'); bText.textContent='INICIAR';
-        showResult(classify(timer), timer);
+        showResult(timer);
+
       }
     });
   </script>
