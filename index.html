@@ -204,15 +204,32 @@
       if(v>=9.5 && v<=10.5) return 'win';
       return 'lose';
     }
-    function showResult(c,v){
-      res.className = 'result ' + c;
-      if(c==='perfect'){ res.textContent = `🎯 ¡Perfecto! ${v.toFixed(2)}s`; wins++; }
-      else if(c==='win'){ res.textContent = `✅ ¡Bien hecho! ${v.toFixed(2)}s`; wins++; }
-      else { res.textContent = `❌ Fallaste: ${v.toFixed(2)}s`; }
+function showResult(v) {
+  let category = '';
+  if (v.toFixed(2) === '10.00') {
+    category = 'perfect';
+    res.textContent = `🎯 ¡Perfecto! ${v.toFixed(2)}s`;
+    wins++;
+  } else if (v >= 10.10 && v <= 10.30) {
+    category = 'win';
+    res.textContent = `⚠️ Casi – Bien hecho: ${v.toFixed(2)}s`;
+    wins++;
+  } else {
+    category = 'lose';
+    res.textContent = `❌ Fallaste: ${v.toFixed(2)}s`;
+  }
 
-      attempts++; att.textContent = attempts; win.textContent = wins;
-      if((c==='win'||c==='perfect')&&(best===null||v<best)){ best=v; bestTime.textContent = best.toFixed(2); }
-    }
+  res.className = 'result ' + category;
+  attempts++;
+  att.textContent = attempts;
+  win.textContent = wins;
+
+  if ((category === 'win' || category === 'perfect') && (best === null || v < best)) {
+    best = v;
+    bestTime.textContent = best.toFixed(2);
+  }
+}
+
     function reset(){
       timer=0; updDisp(0); updProg(0); res.className='result'; res.textContent='';
       tDisp.className='timer-display';
