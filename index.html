@@ -883,15 +883,15 @@
       const isBonus = shouldGiveBonus();
       let tolerance = 0.3; // Tolerancia base
       
-      // Aplicar bonificación
-    if (isBonus) {
-    tolerance = 0.5; // Tolerancia más generosa
+     Aplicar bonificación
+ if (isBonus) {
+   tolerance = 0.5; // Tolerancia más generosa
   }
       
       let category = '';
       let isWin = false;
       
-      if (Math.abs(v - 10.0) <= 0.05) { // Perfecto
+      if (Math.abs(v - 10.0) <= 0.00) { // Perfecto
         category = 'perfect';
         res.textContent = `🎯 ¡PERFECTO! ${v.toFixed(2)}s - ¡GANASTE!`;
         isWin = true;
