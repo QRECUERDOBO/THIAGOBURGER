@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Thiago Burgers – Juego del Cronómetro</title>
+  <title>Thiago Burgers – LLEGAS Y GANAS</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
     html, body { height: 100%; width: 100%; overflow: hidden; position: fixed; }
@@ -731,15 +731,10 @@
       
       <ul class="feature-list">
         <li><strong>Objetivo:</strong> Detén el cronómetro EXACTAMENTE en 10.00 segundos</li>
-        <li><strong>Tolerancia:</strong> Solo ±0.30 segundos para ganar</li>
-        <li><strong>Dificultad Progresiva:</strong> El cronómetro acelera después de los 8s</li>
-        <li><strong>Sistema Balanceado:</strong> Mayor probabilidad de ganar cada 10 intentos</li>
-        <li><strong>Auto-derrota:</strong> El juego termina automáticamente a los 12s</li>
-        <li><strong>Estadísticas:</strong> Rastrea tus intentos, victorias y mejor tiempo</li>
       </ul>
       
       <div class="game-description">
-        <strong>🔥 ¿Tienes lo necesario para ser un Chef Thiago Burgers?</strong><br>
+        <strong>🔥 ¿Tienes lo necesario para GANAR en Thiago Burgers?</strong><br>
         Solo los maestros del tiempo pueden dominar nuestra cocina de alta velocidad.
       </div>
     </div>
@@ -889,23 +884,23 @@
       let tolerance = 0.3; // Tolerancia base
       
       // Aplicar bonificación
-      if (isBonus) {
-        tolerance = 0.5; // Tolerancia más generosa
-      }
+    if (isBonus) {
+    tolerance = 0.5; // Tolerancia más generosa
+  }
       
       let category = '';
       let isWin = false;
       
       if (Math.abs(v - 10.0) <= 0.05) { // Perfecto
         category = 'perfect';
-        res.textContent = `🎯 ¡PERFECTO! ${v.toFixed(2)}s - ¡Eres un Chef Maestro!`;
+        res.textContent = `🎯 ¡PERFECTO! ${v.toFixed(2)}s - ¡GANASTE!`;
         isWin = true;
       } else if (Math.abs(v - 10.0) <= tolerance) { // Victoria con tolerancia
         category = 'win';
         if (isBonus) {
-          res.textContent = `⭐ ¡BONIFICACIÓN! ${v.toFixed(2)}s - ¡Buen trabajo, Chef!`;
+          res.textContent = `⭐ ¡CASI! ${v.toFixed(2)}s - ¡Buen trabajo!`;
         } else {
-          res.textContent = `✅ ¡EXCELENTE! ${v.toFixed(2)}s - ¡Hamburguesa perfecta!`;
+          res.textContent = `✅ ¡TE FALTO POCO! ${v.toFixed(2)}s - ¡Vuelve otro dia!`;
         }
         isWin = true;
       } else { // Derrota
