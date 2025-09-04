@@ -733,4 +733,286 @@
         <li><strong>Objetivo:</strong> Detén el cronómetro EXACTAMENTE en 10.00 segundos</li>
         <li><strong>Tolerancia:</strong> Solo ±0.30 segundos para ganar</li>
         <li><strong>Dificultad Progresiva:</strong> El cronómetro acelera después de los 8s</li>
-        <li><strong>Sistema Bal
+        <li><strong>Sistema Balanceado:</strong> Mayor probabilidad de ganar cada 10 intentos</li>
+        <li><strong>Auto-derrota:</strong> El juego termina automáticamente a los 12s</li>
+        <li><strong>Estadísticas:</strong> Rastrea tus intentos, victorias y mejor tiempo</li>
+      </ul>
+      
+      <div class="game-description">
+        <strong>🔥 ¿Tienes lo necesario para ser un Chef Thiago Burgers?</strong><br>
+        Solo los maestros del tiempo pueden dominar nuestra cocina de alta velocidad.
+      </div>
+    </div>
+    
+    <button class="start-game-btn" onclick="startGame()">
+      🍔 ¡QUIERO THIAGO BURGER! 🍔
+    </button>
+  </div>
+
+  <!-- Página del Juego -->
+  <div class="game-page" id="gamePage">
+    <button class="back-btn" onclick="goBack()">←</button>
+    
+    <div class="logo">🍔 THIAGO BURGERS 🍔</div>
+
+    <div class="game-container">
+      <div class="difficulty-indicator">CHEF MODE</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="timer-display" id="timerDisplay">0.00</div>
+      <button class="hamburger-button start" id="gameButton">
+        <div class="burger-layers">
+          <div class="bun-top"></div>
+          <div class="lettuce"></div>
+          <div class="cheese"></div>
+          <div class="patty"></div>
+          <div class="bun-bottom"></div>
+        </div>
+        <div class="button-text" id="buttonText">COCINAR</div>
+      </button>
+      <div class="result" id="result"></div>
+    </div>
+
+    <div class="stat-drop">
+      <div class="stat-item"><div class="stat-value" id="attempts">0</div><div class="stat-label">Intentos</div></div>
+      <div class="stat-item"><div class="stat-value" id="wins">0</div><div class="stat-label">Éxitos</div></div>
+      <div class="stat-item"><div class="stat-value" id="winRate">0%</div><div class="stat-label">Tasa</div></div>
+    </div>
+    <div class="best-time">Mejor tiempo: <span class="time" id="bestTime">--</span></div>
+  </div>
+
+  <script>
+    // Variables del juego
+    let timer = 0;
+    let interval = null;
+    let started = false;
+    let attempts = 0;
+    let wins = 0;
+    let best = null;
+    let gameHistory = [];
+    
+    // Elementos DOM
+    const tDisp = document.getElementById('timerDisplay');
+    const btn = document.getElementById('gameButton');
+    const bText = document.getElementById('buttonText');
+    const res = document.getElementById('result');
+    const att = document.getElementById('attempts');
+    const win = document.getElementById('wins');
+    const winRate = document.getElementById('winRate');
+    const fill = document.getElementById('progressFill');
+    const bestTime = document.getElementById('bestTime');
+    const introPage = document.getElementById('introPage');
+    const gamePage = document.getElementById('gamePage');
+
+    // Crear partículas flotantes
+    function createParticles() {
+      const particles = document.getElementById('particles');
+      const burgerEmojis = ['🍔', '🍟', '🥤', '🧀', '🥬', '🍅'];
+      
+      function addParticle() {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.textContent = burgerEmojis[Math.floor(Math.random() * burgerEmojis.length)];
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 20 + 's';
+        particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+        particles.appendChild(particle);
+        
+        setTimeout(() => {
+          particle.remove();
+        }, 25000);
+      }
+      
+      // Crear partículas iniciales
+      for (let i = 0; i < 8; i++) {
+        setTimeout(() => addParticle(), i * 2000);
+      }
+      
+      // Continuar agregando partículas
+      setInterval(addParticle, 3000);
+    }
+    
+    // Navegación entre páginas
+    function startGame() {
+      introPage.classList.add('hidden');
+      gamePage.classList.add('active');
+    }
+    
+    function goBack() {
+      gamePage.classList.remove('active');
+      introPage.classList.remove('hidden');
+      reset();
+    }
+
+    // Funciones del juego
+    function updDisp(v) { 
+      tDisp.textContent = v.toFixed(2); 
+    }
+    
+    function updProg(v) { 
+      fill.style.width = Math.min(v / 12 * 100, 100) + '%'; 
+    }
+    
+    function updateWinRate() {
+      const rate = attempts > 0 ? Math.round((wins / attempts) * 100) : 0;
+      winRate.textContent = rate + '%';
+    }
+    
+    // Sistema de balance mejorado
+    function shouldGiveBonus() {
+      // Cada 10 intentos, dar bonificación en el intento 10
+      const cyclePosition = attempts % 10;
+      const consecutiveLosses = getConsecutiveLosses();
+      
+      // Bonificación cada 10 intentos
+      if (cyclePosition === 0 && attempts > 0) return true;
+      
+      // Bonificación después de muchas derrotas consecutivas
+      if (consecutiveLosses >= 7) return true;
+      
+      // Bonificación si la tasa de victorias es muy baja
+      if (attempts >= 20 && (wins / attempts) < 0.1) return true;
+      
+      return false;
+    }
+    
+    function getConsecutiveLosses() {
+      let losses = 0;
+      for (let i = gameHistory.length - 1; i >= 0; i--) {
+        if (gameHistory[i]) break; // Si encontramos una victoria, paramos
+        losses++;
+      }
+      return losses;
+    }
+    
+    function showResult(v) {
+      const isBonus = shouldGiveBonus();
+      let tolerance = 0.3; // Tolerancia base
+      
+      // Aplicar bonificación
+      if (isBonus) {
+        tolerance = 0.5; // Tolerancia más generosa
+      }
+      
+      let category = '';
+      let isWin = false;
+      
+      if (Math.abs(v - 10.0) <= 0.05) { // Perfecto
+        category = 'perfect';
+        res.textContent = `🎯 ¡PERFECTO! ${v.toFixed(2)}s - ¡Eres un Chef Maestro!`;
+        isWin = true;
+      } else if (Math.abs(v - 10.0) <= tolerance) { // Victoria con tolerancia
+        category = 'win';
+        if (isBonus) {
+          res.textContent = `⭐ ¡BONIFICACIÓN! ${v.toFixed(2)}s - ¡Buen trabajo, Chef!`;
+        } else {
+          res.textContent = `✅ ¡EXCELENTE! ${v.toFixed(2)}s - ¡Hamburguesa perfecta!`;
+        }
+        isWin = true;
+      } else { // Derrota
+        category = 'lose';
+        const diff = Math.abs(v - 10.0);
+        if (diff > 2) {
+          res.textContent = `❌ ¡Demasiado ${v > 10 ? 'lento' : 'rápido'}! ${v.toFixed(2)}s`;
+        } else {
+          res.textContent = `🔥 ¡Casi! ${v.toFixed(2)}s - ¡Inténtalo otra vez!`;
+        }
+      }
+
+      res.className = 'result ' + category;
+      attempts++;
+      gameHistory.push(isWin);
+      
+      // Mantener solo los últimos 20 resultados en el historial
+      if (gameHistory.length > 20) {
+        gameHistory.shift();
+      }
+      
+      if (isWin) {
+        wins++;
+        if (best === null || v < best) {
+          best = v;
+          bestTime.textContent = best.toFixed(2) + 's';
+        }
+      }
+      
+      att.textContent = attempts;
+      win.textContent = wins;
+      updateWinRate();
+    }
+
+    function reset() {
+      timer = 0; 
+      updDisp(0); 
+      updProg(0); 
+      res.className = 'result'; 
+      res.textContent = '';
+      tDisp.className = 'timer-display';
+    }
+
+    // Event listener del botón principal
+    btn.addEventListener('click', () => {
+      if (!started) {
+        started = true; 
+        reset();
+        bText.textContent = 'DETENER'; 
+        btn.classList.replace('start', 'stop');
+        
+        const start = performance.now();
+        interval = setInterval(() => {
+          let t = (performance.now() - start) / 1000;
+          
+          // Acelerar después de los 8 segundos
+          if (t >= 8 && t < 12) {
+            t += 0.02; // Aceleración más notable
+          }
+          
+          timer = t;
+          updDisp(timer); 
+          updProg(timer);
+          
+          // Auto-derrota a los 12 segundos
+          if (timer >= 12) {
+            clearInterval(interval); 
+            started = false;
+            btn.classList.replace('stop', 'start'); 
+            bText.textContent = 'COCINAR';
+            showResult(timer);
+          }
+          
+          // Cambiar color según el tiempo
+          if (timer >= 9.7) {
+            tDisp.className = 'timer-display danger';
+          } else if (timer >= 9.0) {
+            tDisp.className = 'timer-display warning';
+          } else {
+            tDisp.className = 'timer-display';
+          }
+        }, 8); // Actualización más frecuente para mayor precisión
+        
+      } else {
+        clearInterval(interval); 
+        started = false;
+        btn.classList.replace('stop', 'start'); 
+        bText.textContent = 'COCINAR';
+        showResult(timer);
+      }
+    });
+    
+    // Inicializar partículas cuando se carga la página
+    createParticles();
+    
+    // Prevenir zoom en dispositivos móviles
+    document.addEventListener('gesturestart', function (e) {
+      e.preventDefault();
+    });
+    
+    document.addEventListener('gesturechange', function (e) {
+      e.preventDefault();
+    });
+    
+    document.addEventListener('gestureend', function (e) {
+      e.preventDefault();
+    });
+  </script>
+</body>
+</html>
